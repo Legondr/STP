@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class Snake : MonoBehaviour
@@ -18,6 +20,14 @@ public class Snake : MonoBehaviour
     private void Start()
     {
         ResetState();
+    	Toggle moveThroughWallsToggle = FindObjectOfType<Toggle>();
+    	if (moveThroughWallsToggle != null)
+    	{
+    	    moveThroughWallsToggle.isOn = moveThroughWalls;
+
+    	    // Ensure the event is properly hooked up
+    	    moveThroughWallsToggle.onValueChanged.AddListener(SetMoveThroughWalls);
+   		}
     }
 
     private void Update()
@@ -158,5 +168,11 @@ public class Snake : MonoBehaviour
         }
         transform.position = position;
     }
+	
+	public void SetMoveThroughWalls(bool value)
+	{
+  		moveThroughWalls = value;
+ 		Debug.Log($"MoveThroughWalls is now: {moveThroughWalls}");
+	}	
 
 }
