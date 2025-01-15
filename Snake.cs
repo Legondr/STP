@@ -16,6 +16,8 @@ public class Snake : MonoBehaviour
     private readonly List<Transform> segments = new List<Transform>();
     private Vector2Int input;
     private float nextUpdate;
+    
+    private ScoreCounter scoreCounter;
 
     private void Start()
     {
@@ -60,6 +62,7 @@ public class Snake : MonoBehaviour
 
     private void FixedUpdate()
     {
+       
         // Wait until the next update before proceeding
         if (Time.time < nextUpdate) 
         {
@@ -89,12 +92,13 @@ public class Snake : MonoBehaviour
         // Set the next update time based on the speed
         nextUpdate = Time.time + (1f / (speed * speedMultiplier));
     }
-
+    //varieable for score count
     public void Grow()
     {
         Transform segment = Instantiate(segmentPrefab);
         segment.position = segments[segments.Count - 1].position;
         segments.Add(segment);
+        ScoreCounter.instance.AddScore();
     }
 
     public void ResetState()
