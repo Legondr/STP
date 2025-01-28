@@ -6,11 +6,12 @@ using UnityEngine.UI;
 [RequireComponent(typeof(BoxCollider2D))]
 public class Snake : MonoBehaviour
 {
+    public static Snake instance;
     public Transform segmentPrefab;
     public Vector2Int direction = Vector2Int.right;
     public float speed = 20f;
     public float speedMultiplier = 1f;
-    public int initialSize = 4;
+    public int initialSize = 0;
     public bool moveThroughWalls = true;
 
     private readonly List<Transform> segments = new List<Transform>();
@@ -18,9 +19,22 @@ public class Snake : MonoBehaviour
     private float nextUpdate;
     
     private ScoreCounter scoreCounter;
+    public bool suppressScore = false;
 
+
+    private void Awake()
+    {
+        instance = this;
+    }
     private void Start()
     {
+        scoreCounter = FindObjectOfType<ScoreCounter>(); // Find ScoreCounter in the scene
+
+        if (scoreCounter == null)
+        {
+            Debug.LogError("ScoreCounter not found! Ensure a ScoreCounter script is in the scene.");
+        }
+        
         ResetState();
     	Toggle moveThroughWallsToggle = FindObjectOfType<Toggle>();
     	if (moveThroughWallsToggle != null)
@@ -103,6 +117,9 @@ public class Snake : MonoBehaviour
 
     public void ResetState()
     {
+        suppressScore = true;
+        
+        scoreCounter.score = 0;
         direction = Vector2Int.right;
         transform.position = Vector3.zero;
 
@@ -121,6 +138,10 @@ public class Snake : MonoBehaviour
         {
             Grow();
         }
+        suppressScore = false;
+        // Reseting score after collision
+        scoreCounter.score = 0; 
+        scoreCounter.scoreText.text = "Score: 0"; 
     }
 
     public bool Occupies(int x, int y)
