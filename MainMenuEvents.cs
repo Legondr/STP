@@ -11,8 +11,14 @@ public class MainMenuEvents : MonoBehaviour
     public Button settingsButton;
     public Button quitButton;
 
-    public VisualElement settingsMenu; // Reference to the settings menu
-    public Button backButton; // Button to go back to the main menu from settings
+    public VisualElement settingsMenu;
+    public Button backButton;
+
+    public VisualElement modesMenu; // Modes menu
+    public Button modesButton; // Modes button
+    public Button modesBackButton; // Back button in modes menu
+	public Button modesPlayButton; // Add this line at the top
+
 
     private bool isPaused = false;
 
@@ -26,26 +32,29 @@ public class MainMenuEvents : MonoBehaviour
     {
         // Assign main menu and settings menu elements
         settingsMenu = ui.Q<VisualElement>("SettingsMenuPanel");
+        modesMenu = ui.Q<VisualElement>("ModesMenuPanel");
+
         playButton = ui.Q<Button>("Play-Button");
         settingsButton = ui.Q<Button>("Settings-Button");
         quitButton = ui.Q<Button>("Quit-Button");
         backButton = ui.Q<Button>("Back-Button");
+        modesButton = ui.Q<Button>("Modes-Button");
+        modesBackButton = ui.Q<Button>("ModesBack-Button");
+		modesPlayButton = ui.Q<Button>("ModesPlay-Button");
 
         // Initialize visibility
         ShowMainMenu();
 
         // Set up button click events
         if (playButton != null) playButton.clicked += OnPlayButtonClicked;
-        else Debug.LogError("Play Button not found!");
-
         if (settingsButton != null) settingsButton.clicked += OnSettingsButtonClicked;
-        else Debug.LogError("Settings Button not found!");
-
         if (quitButton != null) quitButton.clicked += OnQuitButtonClicked;
-        else Debug.LogError("Quit Button not found!");
-
         if (backButton != null) backButton.clicked += OnBackButtonClicked;
-        else Debug.LogError("Back Button not found!");
+        if (modesButton != null) modesButton.clicked += OnModesButtonClicked;
+        if (modesBackButton != null) modesBackButton.clicked += OnModesBackButtonClicked;
+		if (modesPlayButton != null) modesPlayButton.clicked += OnModesPlayButtonClicked;
+		
+
     }
 
     private void OnQuitButtonClicked()
@@ -71,6 +80,25 @@ public class MainMenuEvents : MonoBehaviour
         Debug.Log("Back to main menu.");
         ShowMainMenu();
     }
+
+    private void OnModesButtonClicked()
+    {
+        Debug.Log("Open modes menu.");
+        ShowModesMenu();
+    }
+
+    private void OnModesBackButtonClicked()
+    {
+        Debug.Log("Back to main menu from modes.");
+        ShowMainMenu();
+    }
+
+	private void OnModesPlayButtonClicked()
+	{
+		Debug.Log("Start game from modes");
+		TogglePause();
+        HideUI();
+	}
 
     private void TogglePause()
     {
@@ -121,7 +149,14 @@ public class MainMenuEvents : MonoBehaviour
         {
             settingsMenu.style.display = DisplayStyle.Flex; // Show settings menu
         }
-        
+    }
+
+    private void ShowModesMenu()
+    {
+        if (modesMenu != null)
+        {
+            modesMenu.style.display = DisplayStyle.Flex; // Show modes menu
+        }
     }
 
     private void ShowMainMenu()
@@ -135,8 +170,12 @@ public class MainMenuEvents : MonoBehaviour
         {
             settingsMenu.style.display = DisplayStyle.None; // Hide the settings menu
         }
+
+        if (modesMenu != null)
+        {
+            modesMenu.style.display = DisplayStyle.None; // Hide the modes menu
+        }
     }
-    
 
     private void Update()
     {
