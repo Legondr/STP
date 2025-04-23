@@ -21,7 +21,11 @@ public class ScoreCounter : MonoBehaviour
     public int playerTwoHighScore = 0;
 
     public bool isTwoPlayerMode = false; // Toggle for 2-player mode
-    public ScoreCounter scoreCounter;
+    private ScoreCounter scoreCounter;
+    private GameModesEvents gameModesEvents;
+    private SettingsMenu settingsMenu;
+    
+    public Snake snake;
 
     private void Awake()
     {
@@ -74,7 +78,7 @@ public class ScoreCounter : MonoBehaviour
         {
             playerTwoHighScore = playerTwoScore;
         }
-
+        
         UpdateUI();
     }
 

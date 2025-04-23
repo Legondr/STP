@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,7 +10,6 @@ public class Snake : MonoBehaviour
     public Vector2Int direction;
     
     public float speed = 15f;
-    public float speedMultiplier = 1f;
     public int initialSize = 4;
     public bool moveThroughWalls = false;
     public bool isAlive = true;
@@ -25,6 +25,12 @@ public class Snake : MonoBehaviour
     
     private SpriteRenderer spriteRenderer;
     protected KeyCode upKey, downKey, leftKey, rightKey; // Key bindings
+    
+    // invisible mode
+    private bool isInvisible = false;
+    private float invisibleDuration = 3f; // Invisible time
+    private float visibleDuration = 1f;   // Visible time
+
 
     protected void Awake()
     {
@@ -64,8 +70,7 @@ public class Snake : MonoBehaviour
 
     protected void FixedUpdate()
     {
-        if (Time.time < nextUpdate) 
-            return;
+        
 
         if (input != Vector2Int.zero)
             direction = input;
@@ -77,7 +82,7 @@ public class Snake : MonoBehaviour
         int y = Mathf.RoundToInt(transform.position.y) + direction.y;
         transform.position = new Vector2(x, y);
 
-        nextUpdate = Time.time + (1f / (speed * speedMultiplier));
+        
     }
     
     public bool Occupies(int x, int y)
@@ -108,6 +113,7 @@ public class Snake : MonoBehaviour
         if (segmentRenderer != null)
         {
             segmentRenderer.color = spriteRenderer.color; // Match the snake's color
+            segmentRenderer.enabled = !isInvisible; // Ensure it follows invisibility state
         }
         
         segments.Add(segment);
@@ -116,11 +122,19 @@ public class Snake : MonoBehaviour
         {
             scoreCounter.AddScore(playerID);
         }
+
+        if (gameModesEvents.currentGameMode == GameModesEvents.GameMode.Classic)
+        {
+            speed++;
+            Debug.Log($"Speed: {speed}");
+        }
+        
     }
     
 
     private void ResetState()
     {
+        speed = 15;
         isAlive = true;
         suppressScore = true;
         transform.position = Vector3.zero;
@@ -140,6 +154,8 @@ public class Snake : MonoBehaviour
 
         suppressScore = false;
         scoreCounter.ResetScores();
+        SetDirection(direction);
+        input = direction;
     }
 
     protected void HandlePlayerInput()
@@ -158,6 +174,21 @@ public class Snake : MonoBehaviour
             else if (Input.GetKeyDown(rightKey))
                 input = Vector2Int.right;
         }
+        
+        if (gameModesEvents.currentGameMode == GameModesEvents.GameMode.Mirror)
+        {
+            if (direction.x != 0f)
+            {
+                if (Input.GetKeyDown(upKey)) input = Vector2Int.down; 
+                else if (Input.GetKeyDown(downKey)) input = Vector2Int.up; 
+            }
+            else if (direction.y != 0f)
+            {
+                if (Input.GetKeyDown(leftKey)) input = Vector2Int.right; 
+                else if (Input.GetKeyDown(rightKey)) input = Vector2Int.left; 
+            }
+        }
+
     }
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -220,6 +251,7 @@ public class Snake : MonoBehaviour
                 Destroy(child.gameObject);
             }
         }
+        
         SetDirection(direction);
         input = direction;
         isAlive = true;
@@ -237,4 +269,47 @@ public class Snake : MonoBehaviour
         return isAlive;
     }
     
+    public void StartInvisibleMode()
+    {
+        StartCoroutine(InvisibilityRoutine());
+    }
+    
+    private IEnumerator InvisibilityRoutine()
+    {
+        while (gameModesEvents.currentGameMode == GameModesEvents.GameMode.Invisible)
+        {
+            // Make the entire snake invisible
+            isInvisible = true;
+            SetSnakeVisibility(false);
+            yield return new WaitForSeconds(invisibleDuration);
+
+            // Make the entire snake visible
+            isInvisible = false;
+            SetSnakeVisibility(true);
+            yield return new WaitForSeconds(visibleDuration);
+        }
+    }
+
+
+    private void SetSnakeVisibility(bool isVisible)
+    {
+        // Hide or show the head
+        spriteRenderer.enabled = isVisible;
+    
+        // Hide or show all body segments
+        foreach (Transform segment in segments)
+        {
+            SpriteRenderer sr = segment.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.enabled = isVisible;
+            }
+        }
+    }
+    public List<Transform> GetSegments()
+    {
+        return segments;
+    }
+
+
 }

@@ -7,17 +7,20 @@ public class GameModesEvents : MonoBehaviour
     private RadioButtonGroup modes;
 
     public GameObject snakePrefab; // Assign in Inspector
-    //private Snake snake;
+    private Snake snake;
     private Snake playerOne;
     private Snake playerTwo;
-    private GameObject playerTwoObj;// Store Player 2 instance
+    private GameObject playerTwoObj; // Store Player 2 instance
     private ScoreCounter scoreCounter;
 
     public enum GameMode
     {
         Normal,
         Classic,
-        OneVsOne
+        OneVsOne,
+        Invisible,
+        Mirror,
+        MovingFruit
     }
 
     public GameMode currentGameMode;
@@ -49,13 +52,28 @@ public class GameModesEvents : MonoBehaviour
 
         // Call ChangeGameMode initially
         ChangeGameMode(currentGameMode);
-        
+
         scoreCounter = FindObjectOfType<ScoreCounter>(); // Find the ScoreCounter script
         if (scoreCounter == null)
         {
             Debug.LogError("ScoreCounter not found in the scene! Make sure it exists.");
         }
-        
+    }
+
+    private void DestroyPlayerTwo()
+    {
+        if (playerTwo != null)
+        {
+            foreach (Transform segment in playerTwo.GetSegments())
+            {
+                Destroy(segment.gameObject); // Destroy all segments
+            }
+        }
+
+        Destroy(playerTwoObj); // Destroy Player Two completely
+        playerTwo = null;
+        playerTwoObj = null;
+        scoreCounter.SetTwoPlayerMode(false);
     }
 
 
@@ -78,6 +96,21 @@ public class GameModesEvents : MonoBehaviour
                 OneVsOneGameMode();
                 break;
 
+            case GameMode.Invisible:
+                Debug.Log("Game Mode: Invisible");
+                InvisibleGameMode();
+                break;
+
+            case GameMode.Mirror:
+                Debug.Log("Game Mode: Mirror");
+                MirrorGameMode();
+                break;
+
+            case GameMode.MovingFruit:
+                Debug.Log("Game Mode: MovingFruit");
+                MovingFruitGameMode();
+                break;
+
             default:
                 Debug.Log("Unknown Game Mode");
                 break;
@@ -86,30 +119,33 @@ public class GameModesEvents : MonoBehaviour
 
     private void NormalGameMode()
     {
-        //scoreCounter.winnerMessageText.enabled = false;
+        StopAllModesModifications();
+        scoreCounter.winnerMessageText.enabled = false;
         Debug.Log("Starting Normal Game Mode");
-        playerOne.speedMultiplier = 1f;
+        snake.speed = 15f;
 
         if (playerTwoObj != null)
         {
-            playerTwoObj.SetActive(false); // Hide second snake
+            DestroyPlayerTwo(); // Fully remove Player Two
         }
     }
 
     private void ClassicGameMode()
     {
-        //scoreCounter.winnerMessageText.enabled = false;
+        StopAllModesModifications();
+        scoreCounter.winnerMessageText.enabled = false;
         Debug.Log("Starting Classic Game Mode");
-        playerOne.speedMultiplier = 1f;
+        snake.speed = 15;
 
         if (playerTwoObj != null)
         {
-            playerTwoObj.SetActive(false); // Hide second snake
+            DestroyPlayerTwo(); // Fully remove Player Two
         }
     }
 
     private void OneVsOneGameMode()
     {
+        StopAllModesModifications();
         Debug.Log("Starting 1vs1 Game Mode");
 
         // Find Player One
@@ -123,7 +159,7 @@ public class GameModesEvents : MonoBehaviour
         // Instantiate or Reactivate Player Two
         if (playerTwoObj == null)
         {
-            playerTwoObj = Instantiate(snakePrefab, new Vector3(2, 2, 0), Quaternion.identity);
+            playerTwoObj = Instantiate(snakePrefab, new Vector3(-2, 0, 0), Quaternion.identity); //here
             playerTwoObj.name = "PlayerTwoSnake";
             playerTwo = playerTwoObj.AddComponent<PlayerTwo>();
             playerTwoObj.tag = "Player";
@@ -176,38 +212,38 @@ public class GameModesEvents : MonoBehaviour
         // Force Unity to update the collider immediately
         col.enabled = false;
         col.enabled = true;
-        
+
         scoreCounter.SetTwoPlayerMode(true);
 
         Debug.Log("1 vs 1 Mode: PlayerTwo added!");
-        
+
         RespawnPlayers();
     }
-    
+
     public void RespawnPlayers()
     {
         if (currentGameMode == GameMode.OneVsOne)
         {
             Debug.Log("Respawning Players...");
 
+            // Clear old body segments (if applicable)
+            playerOne.ResetSnake();
+            playerTwo.ResetSnake();
+
             // Set Player One's position and facing direction
             playerOne.transform.position = new Vector3(2, 0, 0); // Left side
             playerOne.SetDirection(Vector2Int.right); // Facing right
             playerOne.input = Vector2Int.right; // Ensure movement starts correctly
-            
+
             // Set Player Two's position and facing direction
             playerTwoObj.transform.position = new Vector3(-2, 0, 0); // Right side
             playerTwo.SetDirection(Vector2Int.left); // Facing left
             playerTwo.input = Vector2Int.left; // Ensure movement starts correctly
-            
-            // Clear old body segments (if applicable)
-            playerOne.ResetSnake();
-            playerTwo.ResetSnake();
-        
+
+
             // Restart game
             Time.timeScale = 0f; // Pause the game until key is pressed
             Debug.Log("Game Paused: Press any key to restart.");
-            
         }
     }
 
@@ -231,9 +267,103 @@ public class GameModesEvents : MonoBehaviour
                 winner = "Tie!";
                 Debug.Log("It's a Tie!");
             }
+            else if (scoreCounter.playerOneScore == 10)
+            {
+                winner = "Player One Wins!";
+                Debug.Log("Player One Wins!");
+            }
+            else if (scoreCounter.playerTwoScore == 10)
+            {
+                winner = "Player Two Wins!";
+                Debug.Log("Player Two Wins!");
+            }
+
             scoreCounter.DisplayWinner(winner);
         }
     }
-    
-    
+
+    private void InvisibleGameMode()
+    {
+        StopAllModesModifications();
+        Debug.Log("Starting Invisible Game Mode");
+
+        // Find Player One
+        playerOne = FindObjectOfType<PlayerOne>();
+        if (playerOne == null)
+        {
+            Debug.LogError("PlayerOne not found in the scene!");
+        }
+
+        if (playerTwoObj != null)
+        {
+            DestroyPlayerTwo(); // Fully remove Player Two
+        }
+
+        playerOne.StartInvisibleMode();
+    }
+
+    private void MirrorGameMode()
+    {
+        StopAllModesModifications();
+        // Find Player One
+        playerOne = FindObjectOfType<PlayerOne>();
+        if (playerOne == null)
+        {
+            Debug.LogError("PlayerOne not found in the scene!");
+        }
+
+        if (playerTwoObj != null)
+        {
+            DestroyPlayerTwo(); // Fully remove Player Two
+        }
+    }
+
+    private void MovingFruitGameMode()
+    {
+        Debug.Log("Starting Moving Fruit Game Mode");
+
+        // Remove Player Two if active
+        if (playerTwoObj != null)
+        {
+            DestroyPlayerTwo();
+        }
+
+        // Optionally reset or trigger movement on food
+        Food food = FindObjectOfType<Food>();
+        if (food != null)
+        {
+            food.RandomizePosition(); // Optional: re-place the food
+
+            // If you made the MoveFood coroutine public:
+            food.StartMoving(); // <-- You can make this helper method inside Food
+        }
+        else
+        {
+            Debug.LogWarning("Food not found in scene.");
+        }
+    }
+
+    private void StopAllModesModifications()
+    {
+        Food food = FindObjectOfType<Food>();
+        if (food != null)
+        {
+            food.StopMoving();
+        }
+
+        playerOne = FindObjectOfType<PlayerOne>();
+        if (playerOne != null)
+        {
+            playerOne.ResetSnake(); // reset segments and state
+        }
+
+        if (playerTwoObj != null)
+        {
+            DestroyPlayerTwo();
+        }
+        
+        Time.timeScale = 1f;
+        
+        scoreCounter.winnerMessageText.enabled = false;
+    }
 }

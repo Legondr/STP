@@ -1,15 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Audio;
 
 public class SettingsMenu : MonoBehaviour
 {
-    public VisualElement settingsMenuUI; // Reference to the settings menu UI
-    public SliderInt speedSlider; // Slider for adjusting the game speed
-    public Slider volumeSlider; // Slider for adjusting the volume
-    public Toggle moveThroughWallsToggle; // Checkbox for enabling/disabling moving through walls
+    private VisualElement settingsMenuUI; // Reference to the settings menu UI
+    private SliderInt speedSlider; // Slider for adjusting the game speed
+    private Slider volumeSlider; // Slider for adjusting the volume
+    private Toggle moveThroughWallsToggle; // Checkbox for enabling/disabling moving through walls
     public AudioMixer audioMixer; // Reference to the AudioMixer for controlling volume
 
     private Snake snakeScript; // Reference to the Snake script
@@ -63,7 +61,7 @@ public class SettingsMenu : MonoBehaviour
         }
     }
 
-    private void OnSpeedChanged(int newSpeed)
+    public void OnSpeedChanged(int newSpeed)
     {
         Debug.Log($"Game speed changed to: {newSpeed}");
         if (snakeScript != null)

@@ -5,19 +5,19 @@ using UnityEngine.UIElements;
 
 public class MainMenuEvents : MonoBehaviour
 {
-    public VisualElement ui;
+    private VisualElement ui;
 
-    public Button playButton;
-    public Button settingsButton;
-    public Button quitButton;
+    private Button playButton;
+    private Button settingsButton;
+    private Button quitButton;
 
-    public VisualElement settingsMenu;
-    public Button backButton;
+    private VisualElement settingsMenu;
+    private Button backButton;
 
-    public VisualElement modesMenu; // Modes menu
-    public Button modesButton; // Modes button
-    public Button modesBackButton; // Back button in modes menu
-	public Button modesPlayButton; // Add this line at the top
+    private VisualElement modesMenu; // Modes menu
+    private Button modesButton; // Modes button
+    private Button modesBackButton; // Back button in modes menu
+    private Button modesPlayButton; // Add this line at the top
 
 
     private bool isPaused = false;
